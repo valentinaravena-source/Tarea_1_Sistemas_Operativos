@@ -1,0 +1,6 @@
+1 : prender_carbon :  :
+2 : comprar_carne : : 
+3 : asar : : [1, 2]
+esta linea esta mala
+
+4 : comer : 50 : 3
