@@ -1,4 +1,5 @@
-#define _POSIX_C_SOURCE 200809L  // para que compilen sigaction, kill, nanosleep y fdopen
+#define _POSIX_C_SOURCE 200809L  
+// para que compilen sigaction, kill, nanosleep y fdopen
 
 // estas son todas las herramientas que necesite
 #include <stdio.h>
