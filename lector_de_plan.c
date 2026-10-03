@@ -1,5 +1,6 @@
 
-#define _POSIX_C_SOURCE 200809L  // sin esto getline y strdup no compilan con -std=c17
+#define _POSIX_C_SOURCE 200809L  
+// sin esto getline y strdup no compilan con -std=c17
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,9 +20,10 @@ int es_espacio(char c) {
     return 0;
 }
 
-// copia lo que hay entre inicio y fin, pero sin los espacios de los bordes. El archivo tiene espacios por todos lados (" asar_longaniza ") y los ids tienen que quedar limpios para poder compararlos despues
-void copiar_sin_espacios(char *destino, int largo_max, char *inicio, char *fin) {
 
+void copiar_sin_espacios(char *destino, int largo_max, char *inicio, char *fin) {
+// copia el texto completo de la linea (con espacios), descarta los espacios y deja solo el texto puro, asi se puede diferenciar los IDs para compararlos despues
+    
     while (inicio < fin && es_espacio(*inicio)) {
         inicio++;
     }
@@ -65,8 +67,10 @@ int leer_linea(char *linea, int numero_linea) {
     }
 
 
-    // los ':' son los separadores, hay 3 por linea, asi que queda partida en 4 partes
-    char *dos_puntos1 = strchr(linea, ':');
+    
+    char *dos_puntos1 = strchr(linea, ':'); // separador
+    //existen 4 datos en cada linea separados por un ":"
+    
     char *dos_puntos2 = NULL;
     char *dos_puntos3 = NULL;
 
@@ -104,7 +108,7 @@ int leer_linea(char *linea, int numero_linea) {
 
     copiar_sin_espacios(a->nombre, LARGO_TEXTO, dos_puntos1 + 1, dos_puntos2);
 
-    // si el tiempo viene vacio me toca sortearlo entre 100 y 5000
+    // si no se indica el tiempo  de una tarea le pongo un valor random entre 100 y 5000ms
     char tiempo[LARGO_TEXTO];
     copiar_sin_espacios(tiempo, LARGO_TEXTO, dos_puntos2 + 1, dos_puntos3);
 
@@ -120,7 +124,7 @@ int leer_linea(char *linea, int numero_linea) {
         a->tiempo_ms = 0;
     }
 
-    // las dependencias las dejo como texto por ahora, todavia no las puedo buscar porque pueden apuntar a una actividad que esta mas abajo en el archivo
+    // las dependencias las dejo como texto por ahora, todavia no las puedo buscar porque pueden ser de una actividad que esta mas abajo en el archivo y aun no la leo
     a->dependencias_texto = strdup(dos_puntos3 + 1);
     a->cuantas_dependencias = 0;
     a->dependencias = NULL;
@@ -146,7 +150,7 @@ int leer_plan(char *nombre_archivo) {
     size_t tam = 0;
     int numero_linea = 0;
     
-    while (getline(&linea, &tam, archivo) != -1) { // lee la linea entera
+    while (getline(&linea, &tam, archivo) != -1) { 
         numero_linea++;
         leer_linea(linea, numero_linea);
     }
@@ -165,7 +169,7 @@ int buscar_actividad(char *id) {
     return -1;
 }
 
-// ahora paso las dependencias de texto a posiciones del arreglo.
+// una vez leido todo el archivo cambio las dependencias de texto a posiciones del arreglo para poder apuntarlas
 int conectar_dependencias(void) {
     int hay_error = 0;
 
@@ -179,21 +183,23 @@ int conectar_dependencias(void) {
     for (int i = 0; i < cuantas_actividades; i++) {
         Actividad *a = &actividades[i];
 
-        // por si las quieren escribir en corchetes. ej [1, 2]
+        // en una parte del enunciado aparecen las dependencia entre corchetes asi que lo puse con corchetes
         for (int k = 0; a->dependencias_texto[k] != '\0'; k++) {
             if (a->dependencias_texto[k] == '[' || a->dependencias_texto[k] == ']') {
                 a->dependencias_texto[k] = ' ';
             }
         }
 
-        // cuento las comxs para saber cuanta memoria pedir (2 comas = 3 dependencias como maximo)
+        // cuento las comxs, si tengo n comas, tengo un max. de n+1 dependencias
         int comas = 0;
         for (int k = 0; a->dependencias_texto[k] != '\0'; k++) {
             if (a->dependencias_texto[k] == ',') {
                 comas++;
             }
         }
-        a->dependencias = malloc(sizeof(int) * (comas + 1));
+        
+        //sabiendo las dependencias ppido el espacio
+        a->dependencias = malloc(sizeof(int) * (comas + 1)); 
 
         char *pedazo = strtok(a->dependencias_texto, ",");
         while (pedazo != NULL) {
