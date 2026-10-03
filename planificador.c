@@ -12,11 +12,11 @@
 #include "planificador.h"
 
 
-// parte en  10 y main la puede cambiar con el tercer numero
+// parte en  10 por default, pero se puede cambiar
 int probabilidad_falla = 10;
 
 volatile sig_atomic_t seremi_llego = 0;
-// puedo hacer ctrl + c en cualquier momento (La Seremi), por eso uso el volatile
+// para poder hacer ctrl + c en cualquier momento (La Seremi)
 
 
 void llego_la_seremi(int senal) {
@@ -47,7 +47,7 @@ int esta_lista(int i) {  //  todas las cosas de las que depende ya terminaron bi
 }
 
 
-// si algo de lo que depende fallo o es abortado, esta actividad nunca se va a poder hacer
+// si alguna dependencia falla o es abortada, esta actividad nunca se va a llevar a cabo
 int abortar_dependientes(void) {
 
     int abortadas = 0;
@@ -109,10 +109,10 @@ int buscar_por_pid(pid_t pid) {
 
 void trabajo_del_hijo(int i, int por_donde_leo, int por_donde_escribo) {
     // el hijo es un clon del padre asi que hereda la accion del cuando se ejecuta ctrl + c
-    signal(SIGINT, SIG_DFL); // lo dejo como viens de fabrica para que simplemente muera
+    signal(SIGINT, SIG_DFL);
 
 
-    srand(getpid());  //para que cada hijo tenga un numero distinto
+    srand(getpid());  //para que cada hijo tenga un numero distinto al correr el codigo
     Actividad *a = &actividades[i];
 
     // aqui leo lo qu e manda el pafre
@@ -144,7 +144,7 @@ void trabajo_del_hijo(int i, int por_donde_leo, int por_donde_escribo) {
 
     close(por_donde_escribo);
 
-    // si o si el hijo debe terminar aqui
+    
     exit(0);
 }
 
@@ -300,6 +300,7 @@ void inspeccion_seremi(void) {
     }
     // wl waitpid es para que los hijos muertos no queden como zombies
     for (int i = 0; i < cuantas_actividades; i++) {
+        
         if (actividades[i].estado == CORRIENDO) {
             waitpid(actividades[i].pid, NULL, 0);
             close(actividades[i].tuberia_lectura);
@@ -472,7 +473,7 @@ int main(int argc, char *argv[]) {
 
     
     if (seremi_llego) {
-        return 130;  // el codigo de siempre cuando algo termina por Ctrl+C
+        return 130;  // cuando algo termina por ctrl+c
     }
 
     return 0;
